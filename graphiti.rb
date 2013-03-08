@@ -72,26 +72,28 @@ class Graphiti < Sinatra::Base
     end
   end
 
-  def login
-    authenticate!
-    user = github_user.name
-    @current_user = session[:user] = user
-  end
-  
-  get '/unauthenticated' do
-    if session[:user].nil?
-      redirect '/'
-    else
-      session.clear
-      redirect '/403.html'
+  if settings.use_github_oauth == true 
+    def login
+      authenticate!
+      user = github_user.name
+      @current_user = session[:user] = user
+    end
+
+    get '/unauthenticated' do
+      if session[:user].nil?
+        redirect '/'
+      else
+        session.clear
+        redirect '/403.html'
+      end
+    end
+
+    get '/logout' do
+      logout!
+      redirect settings.return_url
     end
   end
-
-  get '/logout' do
-    logout!
-    redirect settings.return_url
-  end
-
+  
   get '/graphs/:uuid.js' do
     json Graph.find(params[:uuid])
   end
