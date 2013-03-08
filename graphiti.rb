@@ -76,7 +76,7 @@ class Graphiti < Sinatra::Base
 
   get '/logout' do
     logout!
-    redirect ''
+    redirect 'http://github.com'
   end
 
   get '/graphs/:uuid.js' do
