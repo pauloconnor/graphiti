@@ -48,6 +48,8 @@ class Graphiti < Sinatra::Base
   end
 
   enable :sessions
+  set    :session_secret, settings.auth_token
+
 
   register Sinatra::Auth::Github
 
@@ -69,6 +71,15 @@ class Graphiti < Sinatra::Base
     end
   end
 
+  get '/unauthenticated' do
+    if session[:user].nil?
+      redirect '/'
+    else
+      session.clear
+      redirect '/403.html'
+    end
+  end
+
   get '/' do
     authenticate!
     redirect '/graphs'
@@ -76,31 +87,26 @@ class Graphiti < Sinatra::Base
 
   get '/logout' do
     logout!
-    redirect 'http://github.com'
+    redirect settings.return_url
   end
 
   get '/graphs/:uuid.js' do
-    authenticate!
     json Graph.find(params[:uuid])
   end
 
   get '/metrics.js' do
-    authenticate!
     json :metrics => Metric.find(params[:q])
   end
 
   get '/graphs.js' do
-    authenticate!
     json :graphs => Graph.all
   end
 
   get '/dashboards/:slug.js' do
-    authenticate!
     json Dashboard.find(params[:slug], true)
   end
 
   get '/dashboards.js' do
-    authenticate!
     if params[:uuid]
       json :dashboards => Dashboard.without_graph(params[:uuid])
     else
@@ -109,41 +115,34 @@ class Graphiti < Sinatra::Base
   end
 
   post '/graphs' do
-    authenticate!
     uuid = Graph.save(params[:graph])
     json :uuid => uuid
   end
 
   post '/graphs/:uuid/snapshot' do
-    authenticate!
     url = Graph.snapshot(params[:uuid])
     json :url => url
   end
 
   put '/graphs/:uuid' do
-    authenticate!
     uuid = Graph.save(params[:uuid], params[:graph])
     json :uuid => uuid
   end
 
   post '/dashboards' do
-    authenticate!
     dashboard = Dashboard.save(params[:dashboard])
     json :dashboard => dashboard
   end
 
   post '/graphs/dashboards' do
-    authenticate!
     json Dashboard.add_graph(params[:dashboard], params[:uuid])
   end
 
   delete '/graphs/dashboards' do
-    authenticate!
     json Dashboard.remove_graph(params[:dashboard], params[:uuid])
   end
 
   delete '/graphs/:uuid' do
-    authenticate!
     Graph.destroy(params[:uuid])
   end
 
