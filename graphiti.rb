@@ -8,6 +8,7 @@ end
 
 require 'sinatra/base'
 require 'sinatra/contrib'
+require 'sinatra_auth_github'
 require 'redis/namespace'
 require 'compass'
 require 'typhoeus'
@@ -40,9 +41,22 @@ class Graphiti < Sinatra::Base
     set :haml, :format => :html5
     set :scss, Compass.sass_engine_options
     set :method_override, true
+    set :protection, :except => :json_csrf
     Graph.redis = settings.redis_url
     Dashboard.redis = settings.redis_url
     Metric.redis = settings.redis_url
+  end
+
+  enable :sessions
+
+  register Sinatra::Auth::Github
+
+  if settings.use_github_oauth == true 
+    set :github_options, {
+      :scopes     => "user",
+      :secret     => settings.github_client_secret,
+      :client_id  => settings.github_client_id,
+    }
   end
 
   before do
@@ -53,6 +67,16 @@ class Graphiti < Sinatra::Base
     def base_url
       @base_url ||= "#{request.env['rack.url_scheme']}://#{request.env['HTTP_HOST']}"
     end
+  end
+
+  get '/' do
+    authenticate!
+    redirect '/graphs'
+  end
+
+  get '/logout' do
+    logout!
+    redirect ''
   end
 
   get '/graphs/:uuid.js' do
