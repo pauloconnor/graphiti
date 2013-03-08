@@ -75,8 +75,12 @@ class Graphiti < Sinatra::Base
   if settings.use_github_oauth == true 
     def login
       authenticate!
-      user = github_user.name
-      @current_user = session[:user] = user
+      if github_organization_authenticate!(settings.github_org_id)
+        user = github_user.name
+        @current_user = session[:user] = user
+      else
+        session.clear
+        redirect '/403.html'
     end
 
     get '/unauthenticated' do
