@@ -47,12 +47,6 @@ class Graphiti < Sinatra::Base
     Metric.redis = settings.redis_url
   end
 
-  enable :sessions
-  set    :session_secret, settings.auth_token
-
-
-  register Sinatra::Auth::Github
-
   if settings.use_github_oauth == true 
     set :github_options, {
       :scopes     => "user",
@@ -61,8 +55,14 @@ class Graphiti < Sinatra::Base
     }
   end
 
+  enable :sessions
+  set    :session_secret, settings.auth_token
+
+  register Sinatra::Auth::Github
+
   before do
     S3::Request.logger = logger
+    login
   end
 
   helpers do
@@ -80,9 +80,10 @@ class Graphiti < Sinatra::Base
     end
   end
 
-  get '/' do
+  def login
     authenticate!
-    redirect '/graphs'
+    user = github_user.name
+    @current_user = session[:user] = user
   end
 
   get '/logout' do
