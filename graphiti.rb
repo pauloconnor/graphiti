@@ -81,6 +81,7 @@ class Graphiti < Sinatra::Base
       else
         session.clear
         redirect '/403.html'
+      end
     end
 
     get '/unauthenticated' do
