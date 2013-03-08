@@ -2,7 +2,13 @@
 graphiti_base_url: http://graphiti.pp.local
 graphite_base_url: http://graphite01.pp.local
 #graphite_base_url: https://user:pass@graphite01.pp.local
+use_github_oauth: false
+#github_client_id: AB12CD34
+#github_client_secret: AB12CD34
+#github_callback_url: /auth/github/callback
 redis_url: localhost:6379:1/graphiti
+auth_token: REPLACEME
+return_url: http://github.com
 tmp_dir: /tmp
 fonts:
   - DroidSans

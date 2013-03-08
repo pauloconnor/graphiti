@@ -8,6 +8,7 @@ end
 
 require 'sinatra/base'
 require 'sinatra/contrib'
+require 'sinatra_auth_github'
 require 'redis/namespace'
 require 'compass'
 require 'typhoeus'
@@ -46,8 +47,23 @@ class Graphiti < Sinatra::Base
     Metric.redis = settings.redis_url
   end
 
+  if settings.use_github_oauth == true 
+    set :github_options, {
+      :scopes       => "user",
+      :secret       => settings.github_client_secret,
+      :client_id    => settings.github_client_id,
+      :callback_url => settings.github_callback_url
+    }
+  end
+
+  enable :sessions
+  set    :session_secret, settings.auth_token
+
+  register Sinatra::Auth::Github
+
   before do
     S3::Request.logger = logger
+    login
   end
 
   helpers do
@@ -56,6 +72,28 @@ class Graphiti < Sinatra::Base
     end
   end
 
+  if settings.use_github_oauth == true 
+    def login
+      authenticate!
+      user = github_user.name
+      @current_user = session[:user] = user
+    end
+
+    get '/unauthenticated' do
+      if session[:user].nil?
+        redirect '/'
+      else
+        session.clear
+        redirect '/403.html'
+      end
+    end
+
+    get '/logout' do
+      logout!
+      redirect settings.return_url
+    end
+  end
+  
   get '/graphs/:uuid.js' do
     json Graph.find(params[:uuid])
   end
