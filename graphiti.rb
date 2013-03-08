@@ -49,7 +49,7 @@ class Graphiti < Sinatra::Base
 
   if settings.use_github_oauth == true 
     set :github_options, {
-      :scopes       => "user",
+      :scopes       => settings.github_scope,
       :secret       => settings.github_client_secret,
       :client_id    => settings.github_client_id,
       :callback_url => settings.github_callback_url
