@@ -72,6 +72,12 @@ class Graphiti < Sinatra::Base
     end
   end
 
+  def login
+    authenticate!
+    user = github_user.name
+    @current_user = session[:user] = user
+  end
+  
   get '/unauthenticated' do
     if session[:user].nil?
       redirect '/'
@@ -80,14 +86,6 @@ class Graphiti < Sinatra::Base
       redirect '/403.html'
     end
   end
-
-  def login
-    authenticate!
-    user = github_user.name
-    @current_user = session[:user] = user
-  end
-
-
 
   get '/logout' do
     logout!
