@@ -49,9 +49,10 @@ class Graphiti < Sinatra::Base
 
   if settings.use_github_oauth == true 
     set :github_options, {
-      :scopes     => "user",
-      :secret     => settings.github_client_secret,
-      :client_id  => settings.github_client_id,
+      :scopes       => "user",
+      :secret       => settings.github_client_secret,
+      :client_id    => settings.github_client_id,
+      :callback_url => settings.github_callback_url
     }
   end
 
@@ -85,6 +86,8 @@ class Graphiti < Sinatra::Base
     user = github_user.name
     @current_user = session[:user] = user
   end
+
+
 
   get '/logout' do
     logout!
